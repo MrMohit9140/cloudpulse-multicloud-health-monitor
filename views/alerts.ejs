@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .alert-stat-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .alert-stat-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .tab-btn.active {
+            color: var(--brand-primary);
+            border-bottom-color: var(--brand-primary);
+        }
+        .action-resolve-btn {
+            padding: 0.35rem 0.65rem;
+            background-color: var(--bg-surface-subtle);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .action-resolve-btn:hover {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border-color: #a7f3d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <%- include("partials/sidebar") %>
+
+        <main class="main-content">
+            <%- include("partials/header") %>
+
+            <div class="content-body">
+                <div class="section-heading-row">
+                    <div>
+                        <h2 class="section-title">Alert & Incident Management</h2>
+                        <p class="section-subtitle">Real-time CPU threshold triggers, multi-cloud automated alerting, and incident resolution tracking</p>
+                    </div>
+                </div>
+
+                <!-- ALERT STATS -->
+                <div class="alert-stat-cards">
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Active Alerts</span>
+                            <span class="summary-card-icon" style="background-color: #fff1f2; color: #e11d48;">🔔</span>
+                        </div>
+                        <div class="summary-card-value" id="alertStatActive">--</div>
+                        <div class="summary-card-desc">Unresolved incidents</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Critical</span>
+                            <span class="summary-card-icon" style="background-color: #fef2f2; color: #ef4444;">×</span>
+                        </div>
+                        <div class="summary-card-value" id="alertStatCritical" style="color: #ef4444;">--</div>
+                        <div class="summary-card-desc">CPU ≥ 90% threshold</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Warnings</span>
+                            <span class="summary-card-icon" style="background-color: #fffbeb; color: #f59e0b;">!</span>
+                        </div>
+                        <div class="summary-card-value" id="alertStatWarning" style="color: #f59e0b;">--</div>
+                        <div class="summary-card-desc">CPU 70% to 90% threshold</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Resolved</span>
+                            <span class="summary-card-icon" style="background-color: #ecfdf5; color: #10b981;">✓</span>
+                        </div>
+                        <div class="summary-card-value" id="alertStatResolved" style="color: #10b981;">--</div>
+                        <div class="summary-card-desc">Recovered or resolved</div>
+                    </div>
+                </div>
+
+                <!-- TABS & FILTERS -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" id="tabActiveBtn">Active Alerts</button>
+                    <button class="tab-btn" id="tabHistoryBtn">Alert History</button>
+                </div>
+
+                <div class="filter-bar" style="margin-bottom: 1.5rem;">
+                    <div class="filter-row">
+                        <select id="alertProviderFilter" class="filter-select">
+                            <option value="">All Providers</option>
+                            <option value="AWS">AWS</option>
+                            <option value="Azure">Azure</option>
+                            <option value="GCP">GCP</option>
+                        </select>
+
+                        <select id="alertSeverityFilter" class="filter-select">
+                            <option value="">All Severities</option>
+                            <option value="critical">Critical Only</option>
+                            <option value="warning">Warning Only</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-secondary" id="refreshAlertsTableBtn">↻ Refresh Alerts</button>
+                </div>
+
+                <!-- ALERTS TABLE -->
+                <div class="table-panel">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Provider</th>
+                                    <th>Resource</th>
+                                    <th>Metric</th>
+                                    <th>Observed Value</th>
+                                    <th>Threshold</th>
+                                    <th>Triggered At</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertsTableBody">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; padding: 3rem;">Loading alerts...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <span>CloudPulse – Multi-Cloud Infrastructure Health Monitor</span>
+                <span>AWS · Azure · GCP Independent Monitoring Engine</span>
+            </footer>
+        </main>
+    </div>
+
+    <script src="/js/alerts.js"></script>
+</body>
+</html>

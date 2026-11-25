@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analytics-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background-color: var(--bg-surface);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+        }
+        .time-filter-group {
+            display: flex;
+            gap: 0.35rem;
+        }
+        .time-btn {
+            background: none;
+            border: 1px solid var(--border-strong);
+            padding: 0.4rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .time-btn:hover {
+            background-color: var(--bg-surface-subtle);
+        }
+        .time-btn.active {
+            background-color: var(--brand-primary);
+            color: white;
+            border-color: var(--brand-primary);
+        }
+        .analytics-grid-full {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        .analytics-grid-2col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .analytics-grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <%- include("partials/sidebar") %>
+
+        <main class="main-content">
+            <%- include("partials/header") %>
+
+            <div class="content-body">
+                <div class="section-heading-row">
+                    <div>
+                        <h2 class="section-title">Performance Metrics & Analytics</h2>
+                        <p class="section-subtitle">Comparative telemetry, workload baselines, and historical distributions across AWS, Azure, and GCP</p>
+                    </div>
+                </div>
+
+                <!-- CONTROLS: TIME FILTERS & EXPORT -->
+                <div class="analytics-controls">
+                    <div class="time-filter-group" id="timeFilterButtons">
+                        <button class="time-btn" data-range="1h">Last 1 Hour</button>
+                        <button class="time-btn" data-range="6h">Last 6 Hours</button>
+                        <button class="time-btn active" data-range="24h">Last 24 Hours</button>
+                        <button class="time-btn" data-range="7d">Last 7 Days</button>
+                        <button class="time-btn" data-range="30d">Last 30 Days</button>
+                    </div>
+
+                    <button class="btn btn-secondary" id="exportMetricsCsvBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Export CSV Telemetry</span>
+                    </button>
+                </div>
+
+                <!-- 1. CPU UTILIZATION OVER TIME -->
+                <div class="analytics-grid-full">
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">1. CPU Utilization Over Time</h3>
+                                <p class="chart-subtitle">Cross-cloud timeseries comparison (AWS vs Azure vs GCP)</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap" style="height: 340px;">
+                            <canvas id="chartCpuOverTime"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2 & 3. AVERAGE & MAXIMUM CPU UTILIZATION BY PROVIDER -->
+                <div class="analytics-grid-2col">
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">2. Average CPU Utilization by Provider</h3>
+                                <p class="chart-subtitle">Normalized mean percentage workload</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="chartAvgCpuByProvider"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">3. Maximum CPU Utilization by Provider</h3>
+                                <p class="chart-subtitle">Peak recorded resource usage in range</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="chartMaxCpuByProvider"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 & 5. RESOURCE HEALTH & TOTAL RESOURCES DISTRIBUTION -->
+                <div class="analytics-grid-2col">
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">4. Resource Health Distribution</h3>
+                                <p class="chart-subtitle">Proportion of Healthy, Warning, and Critical states</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="chartHealthDistribution"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">5. Total Resources by Cloud Provider</h3>
+                                <p class="chart-subtitle">Inventory breakdown across cloud vendors</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="chartProviderDistribution"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 & 7. HISTORICAL COMPARISON & ALERT SEVERITY DISTRIBUTION -->
+                <div class="analytics-grid-2col">
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">6. Historical Performance Comparison</h3>
+                                <p class="chart-subtitle">Average CPU vs. Peak workload across providers</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="chartPerformanceComparison"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">7. Alert Distribution by Severity</h3>
+                                <p class="chart-subtitle">Active and resolved warning vs. critical incidents</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="chartAlertDistribution"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <span>CloudPulse – Multi-Cloud Infrastructure Health Monitor</span>
+                <span>AWS · Azure · GCP Independent Monitoring Engine</span>
+            </footer>
+        </main>
+    </div>
+
+    <script src="/js/metrics.js"></script>
+</body>
+</html>

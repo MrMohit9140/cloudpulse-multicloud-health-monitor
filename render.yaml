@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: cloudpulse-health-monitor
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DEMO_MODE
+        value: "true"
+      - key: BACKGROUND_MONITORING
+        value: "true"
+      - key: MONITORING_INTERVAL_MS
+        value: "60000"
+      - key: THRESHOLD_CPU_WARNING
+        value: "70.0"
+      - key: THRESHOLD_CPU_CRITICAL
+        value: "90.0"
+      # Secure credentials to be provided via Render Dashboard Environment settings:
+      - key: MONGODB_URI
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_EC2_INSTANCE_ID
+        sync: false
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_SECRET
+        sync: false
+      - key: AZURE_SUBSCRIPTION_ID
+        sync: false
+      - key: AZURE_VM_RESOURCE_ID
+        sync: false
+      - key: GCP_PROJECT_ID
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false

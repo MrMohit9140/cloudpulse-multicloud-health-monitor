@@ -1,0 +1,90 @@
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle navigation">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <div class="header-titles">
+            <span class="header-eyebrow">MULTI-CLOUD INFRASTRUCTURE</span>
+            <h1 class="header-main-title"><%= title.split("–")[0].trim() %></h1>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <!-- Live Clock -->
+        <div class="live-clock" id="liveClock" title="Current system time">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span id="liveClockText">--:--:--</span>
+        </div>
+
+        <!-- Live Environment Pill -->
+        <div class="environment-badge">
+            <span class="env-pulse"></span>
+            <span><%= env.toUpperCase() %></span>
+        </div>
+
+        <!-- Notification Bell -->
+        <div class="notification-wrapper">
+            <button class="icon-button notification-trigger" id="notificationToggle" type="button" aria-label="Notifications" aria-expanded="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </button>
+
+            <!-- Dropdown -->
+            <div class="notification-dropdown" id="notificationDropdown" hidden>
+                <div class="notification-dropdown-header">
+                    <div>
+                        <h3>Notifications</h3>
+                        <p id="notificationSubtitle">No active alerts</p>
+                    </div>
+                    <span class="live-tag">LIVE</span>
+                </div>
+
+                <div class="notification-list" id="notificationList">
+                    <div class="notification-empty">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <p>All cloud resources within healthy thresholds.</p>
+                    </div>
+                </div>
+
+                <a href="/alerts" class="notification-dropdown-footer">
+                    <span>View all alerts</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Refresh Button -->
+        <button class="btn btn-secondary refresh-btn" id="globalRefreshBtn" title="Refresh all monitoring data">
+            <svg class="refresh-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span id="globalRefreshText">Refresh</span>
+        </button>
+
+        <!-- User Profile Avatar -->
+        <div class="user-profile-badge" title="DevOps Administrator">
+            <div class="user-avatar">CP</div>
+            <div class="user-info">
+                <span class="user-name">CloudPulse Admin</span>
+                <span class="user-role">DevOps Engineer</span>
+            </div>
+        </div>
+    </div>
+</header>

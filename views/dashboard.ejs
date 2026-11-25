@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <%- include("partials/sidebar") %>
+
+        <main class="main-content">
+            <%- include("partials/header") %>
+
+            <div class="content-body">
+                <!-- 1. SUMMARY CARDS -->
+                <section class="summary-grid" id="summaryStats">
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Total Resources</span>
+                            <span class="summary-card-icon" style="background-color: #eff6ff; color: #2563eb;">▤</span>
+                        </div>
+                        <div class="summary-card-value" id="statTotalResources">--</div>
+                        <div class="summary-card-desc">Across all 3 cloud providers</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Healthy</span>
+                            <span class="summary-card-icon" style="background-color: #ecfdf5; color: #10b981;">✓</span>
+                        </div>
+                        <div class="summary-card-value" id="statHealthyResources" style="color: #10b981;">--</div>
+                        <div class="summary-card-desc">CPU & metrics normal</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Warnings</span>
+                            <span class="summary-card-icon" style="background-color: #fffbeb; color: #f59e0b;">!</span>
+                        </div>
+                        <div class="summary-card-value" id="statWarningResources" style="color: #f59e0b;">--</div>
+                        <div class="summary-card-desc">Threshold 70% to 90%</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Critical</span>
+                            <span class="summary-card-icon" style="background-color: #fef2f2; color: #ef4444;">×</span>
+                        </div>
+                        <div class="summary-card-value" id="statCriticalResources" style="color: #ef4444;">--</div>
+                        <div class="summary-card-desc">Threshold ≥ 90%</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Connected</span>
+                            <span class="summary-card-icon" style="background-color: #f0fdf4; color: #16a34a;">☁</span>
+                        </div>
+                        <div class="summary-card-value" id="statConnectedProviders">-- / 3</div>
+                        <div class="summary-card-desc">Live cloud integrations</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Avg CPU</span>
+                            <span class="summary-card-icon" style="background-color: #faf5ff; color: #9333ea;">∿</span>
+                        </div>
+                        <div class="summary-card-value" id="statAverageCpu">--%</div>
+                        <div class="summary-card-desc">Across all monitored VMs</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-card-header">
+                            <span class="summary-card-title">Active Alerts</span>
+                            <span class="summary-card-icon" style="background-color: #fff1f2; color: #e11d48;">🔔</span>
+                        </div>
+                        <div class="summary-card-value" id="statActiveAlerts">--</div>
+                        <div class="summary-card-desc">Issues requiring review</div>
+                    </div>
+                </section>
+
+                <!-- 2. CLOUD PROVIDER CARDS -->
+                <section>
+                    <div class="section-heading-row">
+                        <div>
+                            <h2 class="section-title">Cloud Providers</h2>
+                            <p class="section-subtitle">Independent status & telemetry across AWS, Azure, and Google Cloud</p>
+                        </div>
+                        <a href="/providers" class="btn btn-secondary">Manage Connections →</a>
+                    </div>
+
+                    <div class="providers-grid">
+                        <!-- AWS CARD -->
+                        <div class="provider-card aws-card" id="cardAWS">
+                            <div class="provider-card-top">
+                                <div class="provider-brand-badge">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="#ff9900">
+                                        <path d="M18.74 15.35c-2.45 1.8-6.08 2.76-9.15 2.76-4.32 0-8.21-1.61-11.16-4.3-.23-.21-.02-.5.26-.35 3.19 1.83 7.08 2.93 11.16 2.93 2.73 0 5.79-.69 8.53-2.12.42-.22.8.21.36.52v.01zM19.98 13.91c-.31-.4-2.07-.2-2.86-.1-.24.03-.28-.15-.06-.3 1.44-1.02 3.8-.73 4.07-.39.27.34-.07 2.71-1.44 3.83-.21.17-.39.08-.29-.14.33-.74.89-2.5.58-2.9zM12.98 6.42c-.22-.38-.63-.6-.63-.6s-.19.34-.14.73c.09.73.57 1.55.98 2.05.27.34.66.45.66.45s.17-.34.12-.73c-.09-.73-.57-1.55-.99-1.9z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="provider-title-text">Amazon Web Services</div>
+                                        <div class="provider-stat-lbl" id="awsIdentifier">EC2 & CloudWatch</div>
+                                    </div>
+                                </div>
+                                <span class="status-pill not-connected" id="awsStatusPill">Loading...</span>
+                            </div>
+
+                            <div class="provider-stats-row">
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" id="awsTotal">--</span>
+                                    <span class="provider-stat-lbl">Total</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #10b981;" id="awsHealthy">--</span>
+                                    <span class="provider-stat-lbl">Healthy</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #f59e0b;" id="awsWarning">--</span>
+                                    <span class="provider-stat-lbl">Warning</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #ef4444;" id="awsCritical">--</span>
+                                    <span class="provider-stat-lbl">Critical</span>
+                                </div>
+                            </div>
+
+                            <div class="provider-card-footer">
+                                <span>Last Sync: <strong id="awsLastSync">--</strong></span>
+                                <a href="/metrics?provider=AWS" style="color: var(--brand-primary); text-decoration: none; font-weight: 600;">Metrics →</a>
+                            </div>
+                        </div>
+
+                        <!-- AZURE CARD -->
+                        <div class="provider-card azure-card" id="cardAzure">
+                            <div class="provider-card-top">
+                                <div class="provider-brand-badge">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="#0078d4">
+                                        <path d="M12.87 2.13 5.3 15.22h5.54L5.05 21.87h7.24l6.66-11.58h-5.49l3.41-8.16z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="provider-title-text">Microsoft Azure</div>
+                                        <div class="provider-stat-lbl" id="azureIdentifier">Virtual Machines & Monitor</div>
+                                    </div>
+                                </div>
+                                <span class="status-pill not-connected" id="azureStatusPill">Loading...</span>
+                            </div>
+
+                            <div class="provider-stats-row">
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" id="azureTotal">--</span>
+                                    <span class="provider-stat-lbl">Total</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #10b981;" id="azureHealthy">--</span>
+                                    <span class="provider-stat-lbl">Healthy</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #f59e0b;" id="azureWarning">--</span>
+                                    <span class="provider-stat-lbl">Warning</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #ef4444;" id="azureCritical">--</span>
+                                    <span class="provider-stat-lbl">Critical</span>
+                                </div>
+                            </div>
+
+                            <div class="provider-card-footer">
+                                <span>Last Sync: <strong id="azureLastSync">--</strong></span>
+                                <a href="/metrics?provider=Azure" style="color: var(--brand-primary); text-decoration: none; font-weight: 600;">Metrics →</a>
+                            </div>
+                        </div>
+
+                        <!-- GCP CARD -->
+                        <div class="provider-card gcp-card" id="cardGCP">
+                            <div class="provider-card-top">
+                                <div class="provider-brand-badge">
+                                    <svg width="28" height="28" viewBox="0 0 24 24">
+                                        <path fill="#4285F4" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="provider-title-text">Google Cloud (GCP)</div>
+                                        <div class="provider-stat-lbl" id="gcpIdentifier">Compute Engine & Monitoring</div>
+                                    </div>
+                                </div>
+                                <span class="status-pill not-connected" id="gcpStatusPill">Loading...</span>
+                            </div>
+
+                            <div class="provider-stats-row">
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" id="gcpTotal">--</span>
+                                    <span class="provider-stat-lbl">Total</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #10b981;" id="gcpHealthy">--</span>
+                                    <span class="provider-stat-lbl">Healthy</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #f59e0b;" id="gcpWarning">--</span>
+                                    <span class="provider-stat-lbl">Warning</span>
+                                </div>
+                                <div class="provider-stat-item">
+                                    <span class="provider-stat-num" style="color: #ef4444;" id="gcpCritical">--</span>
+                                    <span class="provider-stat-lbl">Critical</span>
+                                </div>
+                            </div>
+
+                            <div class="provider-card-footer">
+                                <span>Last Sync: <strong id="gcpLastSync">--</strong></span>
+                                <a href="/metrics?provider=GCP" style="color: var(--brand-primary); text-decoration: none; font-weight: 600;">Metrics →</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. INTERACTIVE CHARTS -->
+                <section class="charts-grid">
+                    <!-- CPU Chart (Multi-Cloud Over Time) -->
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">CPU Utilization Over Time</h3>
+                                <p class="chart-subtitle">Cross-provider 24-hour observation curve</p>
+                            </div>
+                            <div class="filter-row">
+                                <select id="dashTimeRangeSelect" class="filter-select">
+                                    <option value="1h">Last 1 Hour</option>
+                                    <option value="6h">Last 6 Hours</option>
+                                    <option value="24h" selected>Last 24 Hours</option>
+                                    <option value="7d">Last 7 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="dashMultiCloudCpuChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Health Distribution Chart -->
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">Resource Health</h3>
+                                <p class="chart-subtitle">Status across all providers</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="dashHealthDonutChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. ACTIVE ALERTS & RECENT INVENTORY -->
+                <section class="charts-grid">
+                    <!-- Active Alerts Box -->
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">Active Threshold Alerts</h3>
+                                <p class="chart-subtitle">Immediate attention required</p>
+                            </div>
+                            <a href="/alerts" class="btn btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;">View All →</a>
+                        </div>
+                        <div id="dashActiveAlertsList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div class="notification-empty">Loading active alerts...</div>
+                        </div>
+                    </div>
+
+                    <!-- Provider Distribution -->
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">Resources by Provider</h3>
+                                <p class="chart-subtitle">Inventory share</p>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrap">
+                            <canvas id="dashProviderDonutChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. INVENTORY PREVIEW TABLE -->
+                <section class="table-panel">
+                    <div class="table-panel-header">
+                        <div>
+                            <h3 class="chart-title">Monitored Cloud Resources</h3>
+                            <p class="chart-subtitle">Real-time health, latency, and telemetry observations</p>
+                        </div>
+                        <a href="/resources" class="btn btn-primary" style="font-size: 0.8rem;">Open Full Inventory →</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Resource</th>
+                                    <th>Provider</th>
+                                    <th>Type</th>
+                                    <th>Region</th>
+                                    <th>CPU Usage</th>
+                                    <th>Status</th>
+                                    <th>Data Source</th>
+                                    <th>Last Checked</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashResourceTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 2rem;">Loading resources...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="app-footer">
+                <span>CloudPulse – Multi-Cloud Infrastructure Health Monitor</span>
+                <span>AWS · Azure · GCP Independent Monitoring Engine</span>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Client Script -->
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

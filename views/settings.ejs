@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .config-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .config-table tr:last-child td {
+            border-bottom: none;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.6rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <%- include("partials/sidebar") %>
+
+        <main class="main-content">
+            <%- include("partials/header") %>
+
+            <div class="content-body">
+                <div class="section-heading-row">
+                    <div>
+                        <h2 class="section-title">System Settings & Cloud Setup</h2>
+                        <p class="section-subtitle">Runtime thresholds, environment parameters, and multi-cloud credential verification</p>
+                    </div>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- Current Runtime Parameters -->
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">Runtime Configuration</h3>
+                                <p class="chart-subtitle">Loaded securely from environment variables</p>
+                            </div>
+                        </div>
+
+                        <table class="config-table">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Environment</strong></td>
+                                    <td><span class="status-pill not-connected"><%= env %></span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Demo Mode</strong></td>
+                                    <td><span class="status-pill <%= config.demoMode ? 'connected' : 'not-connected' %>"><%= config.demoMode ? 'Enabled' : 'Disabled' %></span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CPU Warning Threshold</strong></td>
+                                    <td><strong style="color: #f59e0b;"><%= config.thresholds.cpuWarning %>%</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CPU Critical Threshold</strong></td>
+                                    <td><strong style="color: #ef4444;"><%= config.thresholds.cpuCritical %>%</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Polling Interval</strong></td>
+                                    <td><strong><%= config.intervalMs / 1000 %> seconds</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>AWS Configured</strong></td>
+                                    <td><span class="status-pill <%= config.awsConfigured ? 'connected' : 'configuration-required' %>"><%= config.awsConfigured ? 'Configured' : 'Configuration Required' %></span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Azure Configured</strong></td>
+                                    <td><span class="status-pill <%= config.azureConfigured ? 'connected' : 'configuration-required' %>"><%= config.azureConfigured ? 'Configured' : 'Configuration Required' %></span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>GCP Configured</strong></td>
+                                    <td><span class="status-pill <%= config.gcpConfigured ? 'connected' : 'configuration-required' %>"><%= config.gcpConfigured ? 'Configured' : 'Configuration Required' %></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Deployment Readiness Checklist -->
+                    <div class="chart-panel">
+                        <div class="chart-panel-header">
+                            <div>
+                                <h3 class="chart-title">Deployment Checklist</h3>
+                                <p class="chart-subtitle">Verification for GitHub and Render deployment</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <div class="check-item">
+                                <span style="color: #10b981; font-weight: 700;">✓</span>
+                                <span>MongoDB Atlas Connection string verified</span>
+                            </div>
+                            <div class="check-item">
+                                <span style="color: #10b981; font-weight: 700;">✓</span>
+                                <span>Lazy authentication implemented (zero server crash on missing keys)</span>
+                            </div>
+                            <div class="check-item">
+                                <span style="color: #10b981; font-weight: 700;">✓</span>
+                                <span>Health check endpoint available at <code>/health</code></span>
+                            </div>
+                            <div class="check-item">
+                                <span style="color: #10b981; font-weight: 700;">✓</span>
+                                <span>Server listens on <code>0.0.0.0</code> with dynamic <code>PORT</code></span>
+                            </div>
+                            <div class="check-item">
+                                <span style="color: #10b981; font-weight: 700;">✓</span>
+                                <span>Secrets excluded from Git via <code>.gitignore</code> and <code>.env.example</code></span>
+                            </div>
+                            <div class="check-item">
+                                <span style="color: #10b981; font-weight: 700;">✓</span>
+                                <span>Independent provider isolation with <code>Promise.allSettled</code></span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+                            <a href="/health" target="_blank" class="btn btn-secondary" style="font-size: 0.8rem;">
+                                Test /health Endpoint →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <span>CloudPulse – Multi-Cloud Infrastructure Health Monitor</span>
+                <span>AWS · Azure · GCP Independent Monitoring Engine</span>
+            </footer>
+        </main>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

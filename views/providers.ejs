@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .provider-detail-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .config-snippet {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        .guide-step {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .step-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: var(--brand-subtle);
+            color: var(--brand-primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <%- include("partials/sidebar") %>
+
+        <main class="main-content">
+            <%- include("partials/header") %>
+
+            <div class="content-body">
+                <div class="section-heading-row">
+                    <div>
+                        <h2 class="section-title">Cloud Provider Integrations</h2>
+                        <p class="section-subtitle">Manage credentials, test live connectivity, and review sync health across AWS, Azure, and GCP</p>
+                    </div>
+                </div>
+
+                <div class="providers-grid">
+                    <!-- AWS DETAIL -->
+                    <div class="provider-detail-card">
+                        <div class="provider-card-top">
+                            <div class="provider-brand-badge">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="#ff9900">
+                                    <path d="M18.74 15.35c-2.45 1.8-6.08 2.76-9.15 2.76-4.32 0-8.21-1.61-11.16-4.3-.23-.21-.02-.5.26-.35 3.19 1.83 7.08 2.93 11.16 2.93 2.73 0 5.79-.69 8.53-2.12.42-.22.8.21.36.52v.01zM19.98 13.91c-.31-.4-2.07-.2-2.86-.1-.24.03-.28-.15-.06-.3 1.44-1.02 3.8-.73 4.07-.39.27.34-.07 2.71-1.44 3.83-.21.17-.39.08-.29-.14.33-.74.89-2.5.58-2.9zM12.98 6.42c-.22-.38-.63-.6-.63-.6s-.19.34-.14.73c.09.73.57 1.55.98 2.05.27.34.66.45.66.45s.17-.34.12-.73c-.09-.73-.57-1.55-.99-1.9z"/>
+                                </svg>
+                                <div>
+                                    <div class="provider-title-text">Amazon Web Services (AWS)</div>
+                                    <span class="provider-stat-lbl">Amazon EC2 & CloudWatch</span>
+                                </div>
+                            </div>
+                            <span class="status-pill not-connected" id="detailAwsStatus">Checking...</span>
+                        </div>
+
+                        <div>
+                            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;">Configuration Details</h4>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.35rem;">
+                                <div>Region: <strong id="detailAwsRegion">--</strong></div>
+                                <div>Monitored Instance: <strong id="detailAwsInstance">--</strong></div>
+                                <div>Last Successful Sync: <strong id="detailAwsSync">--</strong></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;">Required IAM Permissions</h4>
+                            <div class="guide-step"><span class="step-num">1</span><span><code>cloudwatch:GetMetricStatistics</code></span></div>
+                            <div class="guide-step"><span class="step-num">2</span><span><code>cloudwatch:ListMetrics</code></span></div>
+                            <div class="guide-step"><span class="step-num">3</span><span><code>ec2:DescribeInstances</code></span></div>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="testProvider('aws')">
+                            <span>Test AWS Connection</span>
+                        </button>
+                    </div>
+
+                    <!-- AZURE DETAIL -->
+                    <div class="provider-detail-card">
+                        <div class="provider-card-top">
+                            <div class="provider-brand-badge">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="#0078d4">
+                                    <path d="M12.87 2.13 5.3 15.22h5.54L5.05 21.87h7.24l6.66-11.58h-5.49l3.41-8.16z"/>
+                                </svg>
+                                <div>
+                                    <div class="provider-title-text">Microsoft Azure</div>
+                                    <span class="provider-stat-lbl">Azure VMs & Azure Monitor</span>
+                                </div>
+                            </div>
+                            <span class="status-pill not-connected" id="detailAzureStatus">Checking...</span>
+                        </div>
+
+                        <div>
+                            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;">Configuration Details</h4>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.35rem;">
+                                <div>Subscription ID: <strong id="detailAzureSub">--</strong></div>
+                                <div>VM Resource: <strong id="detailAzureVm">--</strong></div>
+                                <div>Last Successful Sync: <strong id="detailAzureSync">--</strong></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;">Entra ID RBAC Roles</h4>
+                            <div class="guide-step"><span class="step-num">1</span><span><code>Monitoring Reader</code></span></div>
+                            <div class="guide-step"><span class="step-num">2</span><span><code>Reader</code> on target Resource Group</span></div>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="testProvider('azure')">
+                            <span>Test Azure Connection</span>
+                        </button>
+                    </div>
+
+                    <!-- GCP DETAIL -->
+                    <div class="provider-detail-card">
+                        <div class="provider-card-top">
+                            <div class="provider-brand-badge">
+                                <svg width="32" height="32" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+                                </svg>
+                                <div>
+                                    <div class="provider-title-text">Google Cloud Platform</div>
+                                    <span class="provider-stat-lbl">Compute Engine & Monitoring</span>
+                                </div>
+                            </div>
+                            <span class="status-pill not-connected" id="detailGcpStatus">Checking...</span>
+                        </div>
+
+                        <div>
+                            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;">Configuration Details</h4>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.35rem;">
+                                <div>Project ID: <strong id="detailGcpProject">--</strong></div>
+                                <div>Zone: <strong id="detailGcpZone">--</strong></div>
+                                <div>Last Successful Sync: <strong id="detailGcpSync">--</strong></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;">IAM Roles</h4>
+                            <div class="guide-step"><span class="step-num">1</span><span><code>Monitoring Viewer</code> (roles/monitoring.viewer)</span></div>
+                            <div class="guide-step"><span class="step-num">2</span><span><code>Compute Viewer</code> (roles/compute.viewer)</span></div>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="testProvider('gcp')">
+                            <span>Test GCP Connection</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Environment Variable Template -->
+                <div class="table-panel" style="padding: 1.5rem;">
+                    <h3 class="chart-title" style="margin-bottom: 0.5rem;">Quick Environment Reference</h3>
+                    <p class="chart-subtitle" style="margin-bottom: 1rem;">Set these in your local <code>.env</code> file or in Render Dashboard under Environment Variables:</p>
+                    <pre class="config-snippet">
+# AWS EC2 & CloudWatch
+AWS_REGION=ap-southeast-2
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_EC2_INSTANCE_ID=i-01fb627927411c6f6
+
+# Azure Entra ID & Virtual Machines
+AZURE_TENANT_ID=your-tenant-id
+AZURE_CLIENT_ID=your-app-client-id
+AZURE_CLIENT_SECRET=your-client-secret
+AZURE_SUBSCRIPTION_ID=your-subscription-id
+AZURE_VM_RESOURCE_ID=/subscriptions/SUB_ID/resourceGroups/RG_NAME/providers/Microsoft.Compute/virtualMachines/VM_NAME
+
+# Google Cloud Platform (Compute Engine & Cloud Monitoring)
+GCP_PROJECT_ID=your-gcp-project-id
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+                    </pre>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <span>CloudPulse – Multi-Cloud Infrastructure Health Monitor</span>
+                <span>AWS · Azure · GCP Independent Monitoring Engine</span>
+            </footer>
+        </main>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+    <script>
+        async function testProvider(provider) {
+            const btn = event.currentTarget;
+            btn.disabled = true;
+            btn.textContent = "Testing " + provider.toUpperCase() + "...";
+            try {
+                const res = await fetch("/api/" + provider + "/metrics");
+                const data = await res.json();
+                if (data.success) {
+                    alert("✓ " + provider.toUpperCase() + " Connection Succeeded! Received " + (data.count || 0) + " datapoints.");
+                } else {
+                    alert("Status: " + data.connectionStatus + "\nMessage: " + data.message);
+                }
+            } catch (err) {
+                alert("Request failed: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Test " + provider.toUpperCase() + " Connection";
+                loadDashboardData();
+            }
+        }
+    </script>
+</body>
+</html>

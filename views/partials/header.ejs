@@ -9,7 +9,9 @@
         </button>
 
         <div class="header-titles">
-            <span class="header-eyebrow">MULTI-CLOUD INFRASTRUCTURE</span>
+            <span class="header-eyebrow">
+                <%= typeof currentWorkspace !== 'undefined' && currentWorkspace ? currentWorkspace.name.toUpperCase() : 'MULTI-CLOUD INFRASTRUCTURE' %>
+            </span>
             <h1 class="header-main-title"><%= title.split("–")[0].trim() %></h1>
         </div>
     </div>
@@ -78,13 +80,43 @@
             <span id="globalRefreshText">Refresh</span>
         </button>
 
-        <!-- User Profile Avatar -->
-        <div class="user-profile-badge" title="DevOps Administrator">
-            <div class="user-avatar">CP</div>
-            <div class="user-info">
-                <span class="user-name">CloudPulse Admin</span>
-                <span class="user-role">DevOps Engineer</span>
+        <!-- User Profile Avatar & Menu -->
+        <% if (typeof user !== 'undefined' && user) { %>
+            <div class="user-profile-wrapper" style="position: relative;">
+                <div class="user-profile-badge" id="userMenuTrigger" style="cursor: pointer;" title="Account menu">
+                    <div class="user-avatar">
+                        <%= user.fullName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() %>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name"><%= user.fullName %></span>
+                        <span class="user-role"><%= typeof currentRole !== 'undefined' && currentRole ? currentRole : 'Owner' %></span>
+                    </div>
+                </div>
+
+                <!-- User Dropdown Menu -->
+                <div class="notification-dropdown" id="userDropdown" style="width: 220px; right: 0;" hidden>
+                    <div style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface-subtle);">
+                        <strong style="font-size: 0.82rem; display: block; color: var(--text-primary);"><%= user.fullName %></strong>
+                        <span style="font-size: 0.72rem; color: var(--text-muted);"><%= user.email %></span>
+                    </div>
+                    <div style="padding: 0.5rem 0;">
+                        <a href="/profile" class="nav-item" style="color: var(--text-primary); border-radius: 0; padding: 0.6rem 1rem;">
+                            Profile & Account
+                        </a>
+                        <a href="/settings" class="nav-item" style="color: var(--text-primary); border-radius: 0; padding: 0.6rem 1rem;">
+                            Workspace Settings
+                        </a>
+                        <div style="border-top: 1px solid var(--border-subtle); margin: 0.35rem 0;"></div>
+                        <a href="/logout" class="nav-item" style="color: #b91c1c; border-radius: 0; padding: 0.6rem 1rem;">
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
+        <% } else { %>
+            <a href="/login" class="btn btn-primary" style="font-size: 0.82rem; padding: 0.4rem 0.85rem;">
+                Sign In
+            </a>
+        <% } %>
     </div>
 </header>

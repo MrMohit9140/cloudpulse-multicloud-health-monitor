@@ -1,9 +1,11 @@
-
 // 1. Load environment variables first
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const express = require("express");
+const session = require("express-session");
+const { MongoStore } = require("connect-mongo");
+
 const connectDB = require("./config/database");
 const cloudConfig = require("./config/cloudConfig");
 const {
@@ -11,7 +13,14 @@ const {
     stopHealthMonitor
 } = require("./services/healthMonitor");
 
+// Middleware imports
+const {
+    attachUserAndWorkspace,
+    ensureAuthenticated
+} = require("./middleware/auth");
+
 // Route imports
+const authRoutes = require("./routes/auth");
 const dashboardApiRoutes = require("./routes/dashboard");
 const resourceRoutes = require("./routes/resources");
 const providerRoutes = require("./routes/providers");
@@ -35,19 +44,52 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Health check
+// Session Configuration backed by MongoDB
+const sessionSecret = process.env.SESSION_SECRET || "cloudpulse_default_session_secret_2026";
+app.use(
+    session({
+        secret: sessionSecret,
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGODB_URI,
+            collectionName: "sessions",
+            ttl: 14 * 24 * 60 * 60 // 14 days
+        }),
+        cookie: {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        }
+    })
+);
+
+// Global user & workspace context middleware
+app.use(attachUserAndWorkspace);
+
+// ----------------------------------------------------
+// Public Health Check Endpoint
+// ----------------------------------------------------
 app.get("/health", (req, res) => {
     res.status(200).json({
         status: "ok",
-        service: "CloudPulse – Multi-Cloud Health Monitor",
+        service: "CloudPulse – Multi-Cloud Observability Platform",
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: cloudConfig.app.env
     });
 });
 
-// Frontend pages
-app.get("/", (req, res) => {
+// ----------------------------------------------------
+// Authentication Routes (Public: Login, Register, Password Reset)
+// ----------------------------------------------------
+app.use(authRoutes);
+
+// ----------------------------------------------------
+// Protected Frontend Dashboard Pages
+// ----------------------------------------------------
+app.get("/", ensureAuthenticated, (req, res) => {
     res.render("dashboard", {
         title: "CloudPulse – Overview & Multi-Cloud Health",
         activePage: "overview",
@@ -55,7 +97,7 @@ app.get("/", (req, res) => {
     });
 });
 
-app.get("/providers", (req, res) => {
+app.get("/providers", ensureAuthenticated, (req, res) => {
     res.render("providers", {
         title: "Cloud Providers – CloudPulse",
         activePage: "providers",
@@ -63,7 +105,7 @@ app.get("/providers", (req, res) => {
     });
 });
 
-app.get("/resources", (req, res) => {
+app.get("/resources", ensureAuthenticated, (req, res) => {
     res.render("resources", {
         title: "Resource Inventory – CloudPulse",
         activePage: "resources",
@@ -71,7 +113,7 @@ app.get("/resources", (req, res) => {
     });
 });
 
-app.get("/metrics", (req, res) => {
+app.get("/metrics", ensureAuthenticated, (req, res) => {
     res.render("metrics", {
         title: "Metrics & Analytics – CloudPulse",
         activePage: "metrics",
@@ -79,7 +121,7 @@ app.get("/metrics", (req, res) => {
     });
 });
 
-app.get("/alerts", (req, res) => {
+app.get("/alerts", ensureAuthenticated, (req, res) => {
     res.render("alerts", {
         title: "Alerts & Notifications – CloudPulse",
         activePage: "alerts",
@@ -87,7 +129,7 @@ app.get("/alerts", (req, res) => {
     });
 });
 
-app.get("/settings", (req, res) => {
+app.get("/settings", ensureAuthenticated, (req, res) => {
     res.render("settings", {
         title: "Settings & Cloud Setup – CloudPulse",
         activePage: "settings",
@@ -103,18 +145,21 @@ app.get("/settings", (req, res) => {
     });
 });
 
-// API routes
-app.use("/api/dashboard", dashboardApiRoutes);
-app.use("/api/resources", resourceRoutes);
-app.use("/api/providers", providerRoutes);
-app.use("/api/aws", awsMetricsRoutes);
-app.use("/api/azure", azureMetricsRoutes);
-app.use("/api/gcp", gcpMetricsRoutes);
+// ----------------------------------------------------
+// API routes (Protected by ensureAuthenticated)
+// ----------------------------------------------------
+app.use("/api/dashboard", ensureAuthenticated, dashboardApiRoutes);
+app.use("/api/resources", ensureAuthenticated, resourceRoutes);
+app.use("/api/providers", ensureAuthenticated, providerRoutes);
+app.use("/api/aws", ensureAuthenticated, awsMetricsRoutes);
+app.use("/api/azure", ensureAuthenticated, azureMetricsRoutes);
+app.use("/api/gcp", ensureAuthenticated, gcpMetricsRoutes);
+app.use("/api/metrics", ensureAuthenticated, metricHistoryRoutes);
+app.use("/api/alerts", ensureAuthenticated, alertRoutes);
 
-app.use("/api/metrics", metricHistoryRoutes);
-app.use("/api/alerts", alertRoutes);
-
+// ----------------------------------------------------
 // 404 handler
+// ----------------------------------------------------
 app.use((req, res) => {
     if (req.accepts("html")) {
         return res.status(404).render("dashboard", {
@@ -130,7 +175,9 @@ app.use((req, res) => {
     });
 });
 
+// ----------------------------------------------------
 // Global error handler
+// ----------------------------------------------------
 app.use((err, req, res, next) => {
     console.error("Unhandled Application Error:", err.stack);
 
@@ -145,7 +192,9 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start server
+// ----------------------------------------------------
+// Server bootstrap
+// ----------------------------------------------------
 async function startServer() {
     try {
         await connectDB();
@@ -154,20 +203,17 @@ async function startServer() {
 
         const server = app.listen(port, "0.0.0.0", () => {
             console.log("==============================================");
-            console.log(" CloudPulse – Multi-Cloud Health Monitor");
-            console.log(` Local URL: http://localhost:${port}`);
-            console.log(` Health URL: http://localhost:${port}/health`);
+            console.log(" CloudPulse – Multi-Cloud Observability Platform");
+            console.log(` Local URL:   http://localhost:${port}`);
+            console.log(` Health URL:  http://localhost:${port}/health`);
             console.log(` Environment: ${cloudConfig.app.env}`);
-            console.log(" Azure: Disabled");
             console.log("==============================================");
         });
 
-        // Graceful shutdown
+        // Graceful shutdown handling
         const gracefulShutdown = (signal) => {
-            console.log(`Received ${signal}. Shutting down...`);
-
+            console.log(`\nReceived ${signal}. Shutting down cleanly...`);
             stopHealthMonitor();
-
             server.close(() => {
                 console.log("HTTP server closed.");
                 process.exit(0);
@@ -178,11 +224,13 @@ async function startServer() {
         process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
     } catch (error) {
-        console.error("Fatal Server Startup Failure:", error.message);
-        process.exit(1);
+        console.error("Server startup failed:", error.message);
+        process.exitCode = 1;
     }
 }
 
-startServer();
+if (require.main === module) {
+    startServer();
+}
 
 module.exports = app;

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .profile-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .profile-avatar-large {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <%- include("partials/sidebar") %>
+
+        <main class="main-content">
+            <%- include("partials/header") %>
+
+            <div class="content-body">
+                <div class="section-heading-row">
+                    <div>
+                        <h2 class="section-title">User Account & Profile</h2>
+                        <p class="section-subtitle">Manage your personal credentials, profile information, and workspace memberships</p>
+                    </div>
+                </div>
+
+                <div class="profile-layout">
+                    <!-- Left Column: User Card -->
+                    <div class="profile-card">
+                        <div class="profile-avatar-large">
+                            <%= user ? user.fullName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'CP' %>
+                        </div>
+                        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
+                            <%= user ? user.fullName : 'CloudPulse User' %>
+                        </h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                            <%= user ? user.email : '' %>
+                        </p>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem; font-size: 0.82rem;">
+                            <div>
+                                <span style="color: var(--text-muted);">Platform Role:</span>
+                                <strong><%= user ? user.role.toUpperCase() : 'USER' %></strong>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted);">Member Since:</span>
+                                <strong><%= user && user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Recent' %></strong>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted);">Last Sign In:</span>
+                                <strong><%= user && user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Just now' %></strong>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+                            <a href="/logout" class="btn btn-secondary" style="width: 100%; justify-content: center; color: #b91c1c;">
+                                Sign Out of All Sessions
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Settings Forms -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Edit Profile -->
+                        <div class="profile-card">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem;">General Information</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">Update your display name</p>
+
+                            <div id="profileAlert" class="auth-alert" style="display: none; padding: 0.65rem 0.85rem; border-radius: var(--radius-md); font-size: 0.82rem; margin-bottom: 1rem;"></div>
+
+                            <form id="profileForm">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; display: block;">Full Name</label>
+                                    <input type="text" id="profileFullName" class="filter-select" style="width: 100%;" value="<%= user ? user.fullName : '' %>" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1.25rem;">
+                                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; display: block;">Email Address (Primary)</label>
+                                    <input type="email" class="filter-select" style="width: 100%; background: #f8fafc;" value="<%= user ? user.email : '' %>" disabled>
+                                    <small style="color: var(--text-muted); font-size: 0.75rem;">Email change requires re-verification</small>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Profile</button>
+                            </form>
+                        </div>
+
+                        <!-- Change Password -->
+                        <div class="profile-card">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem;">Security & Password</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">Ensure your account uses a secure password with 8+ characters</p>
+
+                            <div id="passwordAlert" class="auth-alert" style="display: none; padding: 0.65rem 0.85rem; border-radius: var(--radius-md); font-size: 0.82rem; margin-bottom: 1rem;"></div>
+
+                            <form id="passwordForm">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; display: block;">Current Password</label>
+                                    <input type="password" id="currentPassword" class="filter-select" style="width: 100%;" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; display: block;">New Password</label>
+                                    <input type="password" id="newPassword" class="filter-select" style="width: 100%;" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1.25rem;">
+                                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; display: block;">Confirm New Password</label>
+                                    <input type="password" id="confirmNewPassword" class="filter-select" style="width: 100%;" required>
+                                </div>
+                                <button type="submit" class="btn btn-secondary" id="savePasswordBtn">Update Password</button>
+                            </form>
+                        </div>
+
+                        <!-- Workspaces List -->
+                        <div class="profile-card">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem;">Your Workspaces</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">Organizations and teams you have access to</p>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <% (workspaces || []).forEach(function(ws) { %>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                                        <div>
+                                            <strong><%= ws.name %></strong>
+                                            <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.5rem;"><%= ws.type %></span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            <span class="status-pill connected" style="font-size: 0.7rem;"><%= ws.role %></span>
+                                            <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="switchWorkspace('<%= ws.id %>')">Switch</button>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <span>CloudPulse – Multi-Cloud Observability Platform</span>
+                <span>User Profile & Security Management</span>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Profile form handler
+        document.getElementById("profileForm")?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const alertBox = document.getElementById("profileAlert");
+            alertBox.style.display = "none";
+
+            const fullName = document.getElementById("profileFullName").value.trim();
+            try {
+                const res = await fetch("/api/auth/profile", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fullName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alertBox.textContent = "Profile updated successfully!";
+                    alertBox.style.background = "#ecfdf5";
+                    alertBox.style.color = "#065f46";
+                    alertBox.style.display = "block";
+                } else {
+                    alertBox.textContent = data.message || "Failed to update profile";
+                    alertBox.style.background = "#fef2f2";
+                    alertBox.style.color = "#b91c1c";
+                    alertBox.style.display = "block";
+                }
+            } catch (err) {
+                alertBox.textContent = "Network error";
+                alertBox.style.display = "block";
+            }
+        });
+
+        // Password change handler
+        document.getElementById("passwordForm")?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const alertBox = document.getElementById("passwordAlert");
+            alertBox.style.display = "none";
+
+            const currentPassword = document.getElementById("currentPassword").value;
+            const newPassword = document.getElementById("newPassword").value;
+            const confirmPassword = document.getElementById("confirmNewPassword").value;
+
+            try {
+                const res = await fetch("/api/auth/change-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alertBox.textContent = "Password updated successfully!";
+                    alertBox.style.background = "#ecfdf5";
+                    alertBox.style.color = "#065f46";
+                    alertBox.style.display = "block";
+                    document.getElementById("passwordForm").reset();
+                } else {
+                    alertBox.textContent = data.message || "Failed to update password";
+                    alertBox.style.background = "#fef2f2";
+                    alertBox.style.color = "#b91c1c";
+                    alertBox.style.display = "block";
+                }
+            } catch (err) {
+                alertBox.textContent = "Network error";
+                alertBox.style.display = "block";
+            }
+        });
+
+        // Switch workspace function
+        async function switchWorkspace(workspaceId) {
+            try {
+                const res = await fetch("/api/auth/switch-workspace", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ workspaceId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.location.href = "/";
+                } else {
+                    alert(data.message || "Failed to switch workspace");
+                }
+            } catch (err) {
+                alert("Error switching workspace");
+            }
+        }
+    </script>
+</body>
+</html>
